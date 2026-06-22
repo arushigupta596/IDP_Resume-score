@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+RUN useradd -m -u 1000 user
+ENV PATH="/home/user/.local/bin:$PATH"
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -7,12 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY backend/ ./backend/
-COPY Resumes/ ./Resumes/
-COPY JD.docx .
-COPY "Scoring Criteria.docx" .
+COPY --chown=user backend/ ./backend/
+COPY --chown=user Resumes/ ./Resumes/
+COPY --chown=user JD.docx .
+COPY --chown=user "Scoring Criteria.docx" .
+
+RUN mkdir -p /app/backend/data && chown -R user:user /app
+
+USER user
 
 WORKDIR /app/backend
 
