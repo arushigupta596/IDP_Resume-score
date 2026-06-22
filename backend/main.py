@@ -95,4 +95,5 @@ def health():
         "resumes_exist": resumes_exist,
         "resume_count": resume_count,
         "jd_exists": os.path.isfile(jd_path),
+        "api_key_set": bool(os.environ.get("OPENROUTER_API_KEY")),
     }

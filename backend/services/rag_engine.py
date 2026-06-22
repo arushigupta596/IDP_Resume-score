@@ -1,4 +1,3 @@
-import chromadb
 from rank_bm25 import BM25Okapi
 import re
 import asyncio
@@ -25,11 +24,16 @@ RANKING_KEYWORDS = [
 def get_collection():
     global _chroma_client, _collection
     if _chroma_client is None:
-        _chroma_client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
-        _collection = _chroma_client.get_or_create_collection(
-            name="resumes",
-            metadata={"hnsw:space": "cosine"},
-        )
+        try:
+            import chromadb
+            _chroma_client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+            _collection = _chroma_client.get_or_create_collection(
+                name="resumes",
+                metadata={"hnsw:space": "cosine"},
+            )
+        except Exception as e:
+            print(f"[rag] ChromaDB failed to load: {e}")
+            return None
     return _collection
 
 
@@ -51,7 +55,7 @@ def semantic_search(query: str, n_results: int = 10) -> list[tuple[str, float]]:
     if not embeddings_available():
         return []
     collection = get_collection()
-    if collection.count() == 0:
+    if collection is None or collection.count() == 0:
         return []
     query_embedding = generate_embedding(query)
     if not query_embedding:
