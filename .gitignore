@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment / secrets
+.env
+.env.local
+.env.production
+
+# Database & vector store
+backend/data/candidates.db
+backend/data/chroma_db/
+
+# Next.js build
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Resumes (large binary files)
+Resumes/
+
+# Claude config
+.claude/
