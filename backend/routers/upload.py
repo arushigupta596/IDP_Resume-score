@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
-from models.database import get_db, Candidate
+from models.database import get_db, SessionLocal, Candidate
 from services.pdf_parser import extract_text
 from services.scorer import score_resume, calculate_overall_score, get_recommendation
 from services.rag_engine import add_to_vector_store
@@ -104,42 +104,43 @@ async def upload_resumes(files: list[UploadFile] = File(...), db: Session = Depe
     }
 
 
-@router.post("/ingest")
-async def ingest_existing(db: Session = Depends(get_db)):
+async def _run_ingestion():
     global upload_status
-    jd_text = _read_jd()
+    db = SessionLocal()
+    try:
+        jd_text = _read_jd()
+        existing = {c.resume_filename for c in db.query(Candidate.resume_filename).all()}
+        files = [
+            f for f in os.listdir(RESUMES_DIR)
+            if f.lower().endswith((".pdf", ".docx")) and f not in existing
+        ]
+        upload_status = {"total": len(files), "processed": 0, "status": "processing", "errors": []}
 
-    existing = {c.resume_filename for c in db.query(Candidate.resume_filename).all()}
+        for filename in files:
+            filepath = os.path.join(RESUMES_DIR, filename)
+            try:
+                candidate = await _process_single_resume(filepath, filename, jd_text, db)
+                if not candidate:
+                    upload_status["errors"].append(f"Failed: {filename}")
+            except Exception as e:
+                upload_status["errors"].append(f"{filename}: {str(e)}")
+            upload_status["processed"] += 1
 
-    files = [
-        f for f in os.listdir(RESUMES_DIR)
-        if f.lower().endswith((".pdf", ".docx")) and f not in existing
-    ]
+        upload_status["status"] = "complete"
+        clear_cache()
+    except Exception as e:
+        upload_status["status"] = f"error: {str(e)}"
+    finally:
+        db.close()
 
-    upload_status = {"total": len(files), "processed": 0, "status": "processing", "errors": []}
-    processed = []
 
-    for filename in files:
-        filepath = os.path.join(RESUMES_DIR, filename)
-        try:
-            candidate = await _process_single_resume(filepath, filename, jd_text, db)
-            if candidate:
-                processed.append(candidate.name)
-            else:
-                upload_status["errors"].append(f"Failed: {filename}")
-        except Exception as e:
-            upload_status["errors"].append(f"{filename}: {str(e)}")
-
-        upload_status["processed"] += 1
-
-    upload_status["status"] = "complete"
-    clear_cache()
-
-    return {
-        "processed": len(processed),
-        "total": len(files),
-        "errors": upload_status["errors"],
-    }
+@router.post("/ingest")
+async def ingest_existing():
+    global upload_status
+    if upload_status.get("status") == "processing":
+        return {"message": "Ingestion already in progress", "status": upload_status}
+    asyncio.ensure_future(_run_ingestion())
+    return {"message": "Ingestion started in background. Check /api/upload/status for progress."}
 
 
 @router.get("/status")
