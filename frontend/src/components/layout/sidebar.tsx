@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   LogOut,
   Sun,
   Moon,
-  Briefcase,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -50,8 +50,14 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-[240px] bg-[var(--sidebar)] border-r border-[var(--sidebar-border)] flex flex-col z-50">
       <div className="px-5 py-5 border-b border-[var(--sidebar-border)]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-teal flex items-center justify-center shrink-0">
-            <Briefcase className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 p-1">
+            <Image
+              src="/Logotype_de_DP_World.png"
+              alt="DP World"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
           </div>
           <div className="min-w-0">
             <h1 className="text-[13px] font-bold text-foreground leading-tight tracking-tight">
