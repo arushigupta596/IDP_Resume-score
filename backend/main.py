@@ -8,6 +8,18 @@ from services.rag_engine import rag_chat
 from models.database import SessionLocal, Candidate
 
 
+async def auto_ingest_if_empty():
+    db = SessionLocal()
+    count = db.query(Candidate).count()
+    db.close()
+    if count > 0:
+        return
+    print("[startup] Database empty, auto-ingesting resumes...")
+    from routers.upload import _run_ingestion
+    await _run_ingestion()
+    print("[startup] Auto-ingestion complete!")
+
+
 async def prewarm_cache():
     db = SessionLocal()
     count = db.query(Candidate).count()
@@ -52,8 +64,13 @@ async def prewarm_cache():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(prewarm_cache())
+    asyncio.create_task(auto_ingest_then_cache())
     yield
+
+
+async def auto_ingest_then_cache():
+    await auto_ingest_if_empty()
+    await prewarm_cache()
 
 
 app = FastAPI(title="HR AI Copilot API", version="1.0.0", lifespan=lifespan)
