@@ -7,7 +7,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from sqlalchemy.orm import Session
 from models.database import Candidate
-from services.embeddings import generate_embedding
+from services.embeddings import generate_embedding, is_available as embeddings_available
 from config import CHROMA_PERSIST_DIR, OPENROUTER_API_KEY, OPENROUTER_BASE_URL, OPENROUTER_MODEL
 
 _executor = ThreadPoolExecutor(max_workers=2)
@@ -34,8 +34,12 @@ def get_collection():
 
 
 def add_to_vector_store(candidate_id: str, text: str):
+    if not embeddings_available():
+        return
     collection = get_collection()
     embedding = generate_embedding(text)
+    if not embedding:
+        return
     collection.upsert(
         ids=[candidate_id],
         embeddings=[embedding],
@@ -44,10 +48,14 @@ def add_to_vector_store(candidate_id: str, text: str):
 
 
 def semantic_search(query: str, n_results: int = 10) -> list[tuple[str, float]]:
+    if not embeddings_available():
+        return []
     collection = get_collection()
     if collection.count() == 0:
         return []
     query_embedding = generate_embedding(query)
+    if not query_embedding:
+        return []
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=min(n_results, collection.count()),
