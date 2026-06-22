@@ -83,4 +83,16 @@ app.include_router(dashboard.router)
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    import os
+    resumes_dir = os.environ.get("RESUMES_DIR", "../Resumes")
+    resumes_exist = os.path.isdir(resumes_dir)
+    resume_count = len(os.listdir(resumes_dir)) if resumes_exist else 0
+    jd_path = os.environ.get("JD_PATH", "../JD.docx")
+    return {
+        "status": "ok",
+        "cwd": os.getcwd(),
+        "resumes_dir": resumes_dir,
+        "resumes_exist": resumes_exist,
+        "resume_count": resume_count,
+        "jd_exists": os.path.isfile(jd_path),
+    }
