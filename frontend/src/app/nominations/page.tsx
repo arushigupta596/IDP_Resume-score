@@ -80,7 +80,7 @@ export default function NominationsPage() {
     <div className="p-6 space-y-5">
       <div className="flex items-center gap-2 mb-1">
         <div className="w-1 h-6 bg-teal rounded-full" />
-        <h1 className="text-xl font-semibold">Nominations</h1>
+        <h1 className="text-xl font-semibold">Candidates</h1>
       </div>
 
       {/* Filters */}

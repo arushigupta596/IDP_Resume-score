@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/copilot", label: "AI Copilot", icon: Bot },
-  { href: "/nominations", label: "Nominations", icon: Users },
+  { href: "/nominations", label: "Candidates", icon: Users },
 ];
 
 export default function Sidebar() {
