@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
       {stats && <StatsCards stats={stats} />}
 
-      {charts?.pipeline && <PipelineTracker stages={charts.pipeline} />}
+      <PipelineTracker totalCandidates={stats?.total_candidates} />
 
       <div className="grid grid-cols-3 gap-4">
         {charts && <ScoreDistribution data={charts.score_distribution} />}
