@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { DashboardStats, ChartData, Candidate } from "@/types";
 import StatsCards from "@/components/dashboard/stats-cards";
-import PipelineTracker from "@/components/dashboard/pipeline-tracker";
 import ScoreDistribution from "@/components/dashboard/score-distribution-chart";
 import CriteriaBreakdown from "@/components/dashboard/criteria-breakdown-chart";
 import CandidatesTable from "@/components/dashboard/candidates-table";
@@ -122,8 +121,6 @@ export default function DashboardPage() {
       </div>
 
       {stats && <StatsCards stats={stats} />}
-
-      <PipelineTracker totalCandidates={stats?.total_candidates} />
 
       <div className="grid grid-cols-3 gap-4">
         {charts && <ScoreDistribution data={charts.score_distribution} />}

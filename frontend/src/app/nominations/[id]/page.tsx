@@ -20,7 +20,33 @@ import {
   HelpCircle,
   Save,
   Download,
+  FileText,
+  Search,
+  MessageSquare,
+  UserCheck,
+  BarChart3,
+  Send,
+  Gift,
 } from "lucide-react";
+
+const PIPELINE_STAGES = [
+  { name: "Applied", icon: FileText, color: "text-blue-400", bg: "bg-blue-400" },
+  { name: "Pre-Screening", icon: Search, color: "text-teal", bg: "bg-teal" },
+  { name: "Interview", icon: MessageSquare, color: "text-purple-400", bg: "bg-purple-400" },
+  { name: "Onboarded", icon: UserCheck, color: "text-emerald", bg: "bg-emerald" },
+  { name: "Scored", icon: BarChart3, color: "text-amber", bg: "bg-amber" },
+  { name: "Outreach", icon: Send, color: "text-cyan-400", bg: "bg-cyan-400" },
+  { name: "Offered", icon: Gift, color: "text-green-400", bg: "bg-green-400" },
+  { name: "Rejected", icon: XCircle, color: "text-red-400", bg: "bg-red-400" },
+];
+
+function getActiveStage(status: string, recommendation: string): number {
+  if (status === "rejected") return 7;
+  if (status === "shortlisted") return 5;
+  if (status === "interviewed") return 2;
+  if (recommendation && recommendation !== "pending") return 4;
+  return 4;
+}
 
 const CRITERIA = [
   { key: "score_maritime", label: "Maritime & Offshore", color: "#14b8a6", weight: "25%" },
@@ -175,6 +201,52 @@ export default function CandidateProfilePage() {
           </Button>
         </div>
       </div>
+
+      {/* Pipeline Tracker */}
+      <Card className="bg-card border-border px-5 py-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+          Recruitment Pipeline
+        </h3>
+        <div className="flex items-center">
+          {PIPELINE_STAGES.map((stage, i) => {
+            const active = getActiveStage(candidate.status, candidate.recommendation);
+            const isActive = i === active;
+            const isPast = i < active && active !== 7;
+            const isRejected = active === 7 && i === 7;
+            return (
+              <div key={stage.name} className="flex items-center flex-1">
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                      isActive || isRejected
+                        ? `${stage.bg} text-white shadow-lg shadow-${stage.bg}/30`
+                        : isPast
+                          ? `${stage.bg}/20 ${stage.color}`
+                          : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    <stage.icon className="w-4 h-4" />
+                  </div>
+                  <p
+                    className={`text-[9px] mt-1.5 font-medium text-center leading-tight ${
+                      isActive || isRejected ? stage.color : isPast ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {stage.name}
+                  </p>
+                </div>
+                {i < PIPELINE_STAGES.length - 1 && (
+                  <div
+                    className={`h-0.5 w-full -mt-4 ${
+                      isPast ? "bg-teal/40" : "bg-border"
+                    }`}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
 
       <div className="grid grid-cols-3 gap-6">
         {/* Score Breakdown */}
