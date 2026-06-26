@@ -96,7 +96,7 @@ export default function NominationsPage() {
           />
         </div>
         <div className="flex gap-2">
-          {["", "new", "shortlisted", "rejected"].map((s) => (
+          {["", "new", "shortlisted", "outreach", "rejected"].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}

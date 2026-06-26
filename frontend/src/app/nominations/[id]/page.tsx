@@ -98,13 +98,12 @@ export default function CandidateProfilePage() {
     setSaving(false);
   };
 
-  const handleOutreachPreview = async () => {
-    const preview = await api.candidates.outreachPreview(candidate.id);
-    if (preview.error) {
-      alert(preview.error);
-      return;
-    }
-    setOutreachPreview(preview);
+  const handleOutreachPreview = () => {
+    setOutreachPreview({
+      to: candidate.email || "No email on file",
+      subject: "Interview Invitation - Market Research Analyst at DP World",
+      body: `Dear ${candidate.name || "Candidate"},\n\nThank you for your interest in DP World. After reviewing your profile, we are pleased to inform you that you have been shortlisted for the Market Research Analyst position.\n\nWe would like to invite you for an interview to discuss your experience and how it aligns with our team's goals in maritime logistics and market intelligence.\n\nPlease reply to this email with your availability over the next two weeks, and we will schedule a convenient time for the conversation.\n\nWe look forward to speaking with you.\n\nBest regards,\nHR Team\nDP World`,
+    });
   };
 
   const handleOutreachSend = async () => {
