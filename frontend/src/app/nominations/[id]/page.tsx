@@ -70,6 +70,7 @@ export default function CandidateProfilePage() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [sendingOutreach, setSendingOutreach] = useState(false);
+  const [outreachPreview, setOutreachPreview] = useState<{ to: string; subject: string; body: string } | null>(null);
 
   useEffect(() => {
     api.candidates.get(params.id as string).then((data) => {
@@ -97,7 +98,16 @@ export default function CandidateProfilePage() {
     setSaving(false);
   };
 
-  const handleOutreach = async () => {
+  const handleOutreachPreview = async () => {
+    const preview = await api.candidates.outreachPreview(candidate.id);
+    if (preview.error) {
+      alert(preview.error);
+      return;
+    }
+    setOutreachPreview(preview);
+  };
+
+  const handleOutreachSend = async () => {
     setSendingOutreach(true);
     try {
       const res = await api.candidates.outreach(candidate.id);
@@ -105,6 +115,7 @@ export default function CandidateProfilePage() {
         alert(res.error);
       } else {
         setCandidate({ ...candidate, status: "outreach" });
+        setOutreachPreview(null);
       }
     } catch {
       alert("Failed to send outreach email");
@@ -315,14 +326,13 @@ export default function CandidateProfilePage() {
             <Button
               size="sm"
               className="bg-cyan-500 hover:bg-cyan-600 text-white"
-              onClick={handleOutreach}
-              disabled={sendingOutreach}
+              onClick={handleOutreachPreview}
             >
               <Send className="w-3.5 h-3.5 mr-1.5" />
-              {sendingOutreach ? "Sending..." : "Send Outreach Email"}
+              Send Outreach Email
             </Button>
             <span className="text-[11px] text-muted-foreground ml-3">
-              Sends interview invitation to {candidate.email || "candidate"}
+              Preview and send interview invitation to {candidate.email || "candidate"}
             </span>
           </div>
         )}
@@ -426,6 +436,61 @@ export default function CandidateProfilePage() {
           </Button>
         </Card>
       </div>
+
+      {/* Outreach Email Preview Modal */}
+      {outreachPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-xl w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-cyan-400" />
+                <h3 className="text-sm font-semibold">Outreach Email Preview</h3>
+              </div>
+              <button
+                onClick={() => setOutreachPreview(null)}
+                className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+              <div>
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">To</span>
+                <p className="text-sm text-foreground">{outreachPreview.to}</p>
+              </div>
+              <div>
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Subject</span>
+                <p className="text-sm text-foreground">{outreachPreview.subject}</p>
+              </div>
+              <div className="border-t border-border pt-3">
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Message</span>
+                <pre className="text-sm text-foreground whitespace-pre-wrap leading-relaxed font-sans mt-1">
+                  {outreachPreview.body}
+                </pre>
+              </div>
+            </div>
+            <div className="px-5 py-3 border-t border-border flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => setOutreachPreview(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs h-8"
+                onClick={handleOutreachSend}
+                disabled={sendingOutreach}
+              >
+                <Send className="w-3 h-3 mr-1.5" />
+                {sendingOutreach ? "Sending..." : "Send Email"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

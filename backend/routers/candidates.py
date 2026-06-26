@@ -153,6 +153,20 @@ def shortlist_candidate(candidate_id: str, db: Session = Depends(get_db)):
     return {"status": "ok"}
 
 
+@router.get("/{candidate_id}/outreach-preview")
+def outreach_preview(candidate_id: str, db: Session = Depends(get_db)):
+    c = db.query(Candidate).filter(Candidate.id == candidate_id).first()
+    if not c:
+        return {"error": "Candidate not found"}
+
+    from services.email_service import get_email_body
+    return {
+        "to": c.email or "",
+        "subject": "Interview Invitation - Market Research Analyst at DP World",
+        "body": get_email_body(c.name or "Candidate"),
+    }
+
+
 @router.post("/{candidate_id}/outreach")
 def outreach_candidate(candidate_id: str, db: Session = Depends(get_db)):
     c = db.query(Candidate).filter(Candidate.id == candidate_id).first()
