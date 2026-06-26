@@ -43,13 +43,14 @@ const SHORTLIST_STAGES = [
 ];
 
 function getInitialActive(status: string): number {
-  if (status === "shortlisted" || status === "interviewed" || status === "rejected") return 3;
+  if (status === "shortlisted" || status === "outreach" || status === "interviewed" || status === "rejected") return 3;
   return 2;
 }
 
 function getShortlistActive(status: string): number {
   if (status === "rejected") return -1;
-  if (status === "interviewed") return 2;
+  if (status === "interviewed") return 3;
+  if (status === "outreach") return 2;
   if (status === "shortlisted") return 1;
   return 0;
 }
@@ -68,6 +69,7 @@ export default function CandidateProfilePage() {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [sendingOutreach, setSendingOutreach] = useState(false);
 
   useEffect(() => {
     api.candidates.get(params.id as string).then((data) => {
@@ -93,6 +95,22 @@ export default function CandidateProfilePage() {
     setSaving(true);
     await api.candidates.update(candidate.id, { hr_notes: notes });
     setSaving(false);
+  };
+
+  const handleOutreach = async () => {
+    setSendingOutreach(true);
+    try {
+      const res = await api.candidates.outreach(candidate.id);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        setCandidate({ ...candidate, status: "outreach" });
+      }
+    } catch {
+      alert("Failed to send outreach email");
+    } finally {
+      setSendingOutreach(false);
+    }
   };
 
   const scoreColor = candidate.overall_score >= 70
@@ -249,7 +267,7 @@ export default function CandidateProfilePage() {
           </div>
 
           {/* Phase 2: Only shown for shortlisted candidates */}
-          {(candidate.status === "shortlisted" || candidate.status === "interviewed" || candidate.status === "rejected") && (
+          {(candidate.status === "shortlisted" || candidate.status === "outreach" || candidate.status === "interviewed" || candidate.status === "rejected") && (
             <>
               <div className="flex flex-col items-center pt-2">
                 <div className="w-px h-6 bg-border" />
@@ -292,6 +310,22 @@ export default function CandidateProfilePage() {
             </>
           )}
         </div>
+        {candidate.status === "shortlisted" && (
+          <div className="mt-4 pt-3 border-t border-border">
+            <Button
+              size="sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white"
+              onClick={handleOutreach}
+              disabled={sendingOutreach}
+            >
+              <Send className="w-3.5 h-3.5 mr-1.5" />
+              {sendingOutreach ? "Sending..." : "Send Outreach Email"}
+            </Button>
+            <span className="text-[11px] text-muted-foreground ml-3">
+              Sends interview invitation to {candidate.email || "candidate"}
+            </span>
+          </div>
+        )}
       </Card>
 
       <div className="grid grid-cols-3 gap-6">

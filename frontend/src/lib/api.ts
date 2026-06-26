@@ -32,6 +32,8 @@ export const api = {
       fetchAPI<any>(`/api/candidates/${id}/shortlist`, { method: "POST" }),
     reject: (id: string) =>
       fetchAPI<any>(`/api/candidates/${id}/reject`, { method: "POST" }),
+    outreach: (id: string) =>
+      fetchAPI<any>(`/api/candidates/${id}/outreach`, { method: "POST" }),
     export: () => `${API_BASE}/api/candidates/export`,
     compare: (ids: string[]) =>
       fetchAPI<any>("/api/candidates/compare", {

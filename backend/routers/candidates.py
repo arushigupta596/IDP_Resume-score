@@ -153,6 +153,27 @@ def shortlist_candidate(candidate_id: str, db: Session = Depends(get_db)):
     return {"status": "ok"}
 
 
+@router.post("/{candidate_id}/outreach")
+def outreach_candidate(candidate_id: str, db: Session = Depends(get_db)):
+    c = db.query(Candidate).filter(Candidate.id == candidate_id).first()
+    if not c:
+        return {"error": "Candidate not found"}
+    if c.status != "shortlisted":
+        return {"error": "Candidate must be shortlisted before outreach"}
+    if not c.email:
+        return {"error": "Candidate has no email address on file"}
+
+    from services.email_service import send_outreach_email
+    result = send_outreach_email(c.name or "Candidate", c.email)
+
+    if result["success"]:
+        c.status = "outreach"
+        db.commit()
+        return {"status": "ok", "message": f"Outreach email sent to {c.email}"}
+    else:
+        return {"error": f"Failed to send email: {result.get('error', 'Unknown error')}"}
+
+
 @router.post("/{candidate_id}/reject")
 def reject_candidate(candidate_id: str, db: Session = Depends(get_db)):
     c = db.query(Candidate).filter(Candidate.id == candidate_id).first()

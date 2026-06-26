@@ -15,6 +15,9 @@ JD_PATH = os.getenv("JD_PATH", "../JD.docx")
 SCORING_CRITERIA_PATH = os.getenv("SCORING_CRITERIA_PATH", "../Scoring Criteria.docx")
 UPLOAD_DIR = "./data/uploads"
 
+SMTP_EMAIL = os.getenv("SMTP_EMAIL", "arushi.gupta@emb.global")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+
 SCORING_CRITERIA = [
     {
         "id": "maritime",
