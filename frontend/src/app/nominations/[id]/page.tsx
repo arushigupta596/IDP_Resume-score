@@ -241,7 +241,7 @@ export default function CandidateProfilePage() {
                     </p>
                   </div>
                   {i < INITIAL_STAGES.length - 1 && (
-                    <div className={`h-0.5 w-full -mt-4 ${isPast ? "bg-teal/40" : "bg-border"}`} />
+                    <div className={`h-0.5 w-full -mt-4 ${i + 1 < activeIdx ? "bg-teal/40" : "bg-border"}`} />
                   )}
                 </div>
               );
