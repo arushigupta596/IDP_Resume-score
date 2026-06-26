@@ -29,23 +29,27 @@ import {
   Gift,
 } from "lucide-react";
 
-const PIPELINE_STAGES = [
+const INITIAL_STAGES = [
   { name: "Applied", icon: FileText, color: "text-blue-400", bg: "bg-blue-400" },
-  { name: "Pre-Screening", icon: Search, color: "text-teal", bg: "bg-teal" },
-  { name: "Interview", icon: MessageSquare, color: "text-purple-400", bg: "bg-purple-400" },
-  { name: "Onboarded", icon: UserCheck, color: "text-emerald", bg: "bg-emerald" },
   { name: "Scored", icon: BarChart3, color: "text-amber", bg: "bg-amber" },
-  { name: "Outreach", icon: Send, color: "text-cyan-400", bg: "bg-cyan-400" },
-  { name: "Offered", icon: Gift, color: "text-green-400", bg: "bg-green-400" },
-  { name: "Rejected", icon: XCircle, color: "text-red-400", bg: "bg-red-400" },
+  { name: "Pre-Screening", icon: Search, color: "text-teal", bg: "bg-teal" },
 ];
 
-function getActiveStage(status: string, recommendation: string): number {
-  if (status === "rejected") return 7;
-  if (status === "shortlisted") return 5;
-  if (status === "interviewed") return 2;
-  if (recommendation && recommendation !== "pending") return 4;
-  return 4;
+const SHORTLIST_STAGES = [
+  { name: "Outreach", icon: Send, color: "text-cyan-400", bg: "bg-cyan-400" },
+  { name: "Interview", icon: MessageSquare, color: "text-purple-400", bg: "bg-purple-400" },
+];
+
+function getInitialActive(status: string): number {
+  if (status === "shortlisted" || status === "interviewed" || status === "rejected") return 3;
+  return 2;
+}
+
+function getShortlistActive(status: string): { stage: number; outcome: "selected" | "rejected" | null } {
+  if (status === "rejected") return { stage: 2, outcome: "rejected" };
+  if (status === "interviewed") return { stage: 1, outcome: null };
+  if (status === "shortlisted") return { stage: 0, outcome: null };
+  return { stage: -1, outcome: null };
 }
 
 const CRITERIA = [
@@ -204,47 +208,115 @@ export default function CandidateProfilePage() {
 
       {/* Pipeline Tracker */}
       <Card className="bg-card border-border px-5 py-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
           Recruitment Pipeline
         </h3>
-        <div className="flex items-center">
-          {PIPELINE_STAGES.map((stage, i) => {
-            const active = getActiveStage(candidate.status, candidate.recommendation);
-            const isActive = i === active;
-            const isPast = i < active && active !== 7;
-            const isRejected = active === 7 && i === 7;
-            return (
-              <div key={stage.name} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1">
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                      isActive || isRejected
-                        ? `${stage.bg} text-white shadow-lg shadow-${stage.bg}/30`
-                        : isPast
-                          ? `${stage.bg}/20 ${stage.color}`
-                          : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    <stage.icon className="w-4 h-4" />
+        <div className="flex items-start gap-6">
+          {/* Phase 1: Applied -> Scored -> Pre-Screening */}
+          <div className="flex items-center flex-1">
+            {INITIAL_STAGES.map((stage, i) => {
+              const activeIdx = getInitialActive(candidate.status);
+              const isPast = i < activeIdx;
+              const isCurrent = i === activeIdx - 1 && activeIdx <= 2;
+              return (
+                <div key={stage.name} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center flex-1">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                        isCurrent
+                          ? `${stage.bg} text-white shadow-lg`
+                          : isPast
+                            ? `${stage.bg}/20 ${stage.color}`
+                            : "bg-secondary text-muted-foreground"
+                      }`}
+                    >
+                      <stage.icon className="w-4.5 h-4.5" />
+                    </div>
+                    <p className={`text-[10px] mt-1.5 font-medium text-center leading-tight ${
+                      isCurrent ? stage.color : isPast ? "text-foreground" : "text-muted-foreground"
+                    }`}>
+                      {stage.name}
+                    </p>
                   </div>
-                  <p
-                    className={`text-[9px] mt-1.5 font-medium text-center leading-tight ${
-                      isActive || isRejected ? stage.color : isPast ? "text-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {stage.name}
-                  </p>
+                  {i < INITIAL_STAGES.length - 1 && (
+                    <div className={`h-0.5 w-full -mt-4 ${isPast ? "bg-teal/40" : "bg-border"}`} />
+                  )}
                 </div>
-                {i < PIPELINE_STAGES.length - 1 && (
-                  <div
-                    className={`h-0.5 w-full -mt-4 ${
-                      isPast ? "bg-teal/40" : "bg-border"
-                    }`}
-                  />
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Divider */}
+          <div className="flex flex-col items-center pt-2">
+            <div className="w-px h-6 bg-border" />
+            <span className="text-[9px] text-muted-foreground my-1">Shortlisted</span>
+            <div className="w-px h-6 bg-border" />
+          </div>
+
+          {/* Phase 2: Outreach -> Interview -> Selected/Rejected */}
+          <div className="flex items-center flex-1">
+            {(() => {
+              const sl = getShortlistActive(candidate.status);
+              const isShortlisted = candidate.status === "shortlisted" || candidate.status === "interviewed" || candidate.status === "rejected";
+              return (
+                <>
+                  {SHORTLIST_STAGES.map((stage, i) => {
+                    const isPast = isShortlisted && i <= sl.stage;
+                    const isCurrent = isShortlisted && i === sl.stage && !sl.outcome;
+                    return (
+                      <div key={stage.name} className="flex items-center flex-1">
+                        <div className="flex flex-col items-center flex-1">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                              isCurrent
+                                ? `${stage.bg} text-white shadow-lg`
+                                : isPast
+                                  ? `${stage.bg}/20 ${stage.color}`
+                                  : "bg-secondary text-muted-foreground"
+                            }`}
+                          >
+                            <stage.icon className="w-4.5 h-4.5" />
+                          </div>
+                          <p className={`text-[10px] mt-1.5 font-medium text-center leading-tight ${
+                            isCurrent ? stage.color : isPast ? "text-foreground" : "text-muted-foreground"
+                          }`}>
+                            {stage.name}
+                          </p>
+                        </div>
+                        {i < SHORTLIST_STAGES.length - 1 && (
+                          <div className={`h-0.5 w-full -mt-4 ${isPast && i < sl.stage ? "bg-teal/40" : "bg-border"}`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {/* Fork: Selected / Rejected */}
+                  <div className="h-0.5 w-8 -mt-4 bg-border" />
+                  <div className="flex flex-col gap-2 ml-1">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                        sl.outcome === "selected" ? "bg-emerald text-white shadow-lg" : isShortlisted && !sl.outcome ? "bg-secondary text-muted-foreground" : "bg-secondary text-muted-foreground"
+                      }`}>
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                      <span className={`text-[10px] font-medium ${sl.outcome === "selected" ? "text-emerald" : "text-muted-foreground"}`}>
+                        Selected
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                        sl.outcome === "rejected" ? "bg-red-500 text-white shadow-lg" : "bg-secondary text-muted-foreground"
+                      }`}>
+                        <XCircle className="w-4 h-4" />
+                      </div>
+                      <span className={`text-[10px] font-medium ${sl.outcome === "rejected" ? "text-red-400" : "text-muted-foreground"}`}>
+                        Rejected
+                      </span>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
         </div>
       </Card>
 
