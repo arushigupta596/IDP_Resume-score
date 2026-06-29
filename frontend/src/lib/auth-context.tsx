@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabase } from "./supabase";
 import { useRouter, usePathname } from "next/navigation";
 
 type AuthContextType = {
@@ -26,11 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -49,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!loading && !session && pathname !== "/login" && isSupabaseConfigured) {
+    if (!loading && !session && pathname !== "/login") {
       router.push("/login");
     }
   }, [loading, session, pathname]);
