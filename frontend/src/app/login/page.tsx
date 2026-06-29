@@ -32,19 +32,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-3">
-          <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center mx-auto p-2">
+          <div className="w-36 h-36 rounded-2xl bg-white flex items-center justify-center mx-auto p-4">
             <Image
               src="/Logotype_de_DP_World.png"
               alt="DP World"
-              width={40}
-              height={40}
+              width={112}
+              height={112}
               className="object-contain"
             />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">DP World</h1>
-            <p className="text-sm text-muted-foreground">Talent Intelligence Platform</p>
-          </div>
+          <p className="text-sm text-muted-foreground">Talent Intelligence Platform</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
