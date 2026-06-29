@@ -13,6 +13,7 @@ import {
   Moon,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth-context";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -22,6 +23,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { signOut } = useAuth();
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
@@ -128,7 +130,10 @@ export default function Sidebar() {
             />
           </button>
         </div>
-        <button className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={signOut}
+          className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+        >
           <LogOut className="w-4 h-4" />
           Log out
         </button>

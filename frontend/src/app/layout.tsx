@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/layout/sidebar";
 import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/lib/auth-context";
+import AppShell from "@/components/layout/app-shell";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -32,8 +33,9 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <Sidebar />
-        <main className="ml-[240px] min-h-screen">{children}</main>
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
       </body>
     </html>
   );
