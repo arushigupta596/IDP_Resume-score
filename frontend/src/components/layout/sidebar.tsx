@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Bot,
@@ -23,8 +23,14 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { signOut } = useAuth();
   const [dark, setDark] = useState(true);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -131,7 +137,7 @@ export default function Sidebar() {
           </button>
         </div>
         <button
-          onClick={signOut}
+          onClick={handleSignOut}
           className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
         >
           <LogOut className="w-4 h-4" />

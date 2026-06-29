@@ -1,12 +1,20 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import Sidebar from "./sidebar";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { loading, session } = useAuth();
+  const router = useRouter();
+  const { loading, session, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !session && pathname !== "/login") {
+      router.push("/login");
+    }
+  }, [loading, session, pathname, router]);
 
   if (loading) {
     return (
